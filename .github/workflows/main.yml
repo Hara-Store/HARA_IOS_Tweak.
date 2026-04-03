@@ -2,29 +2,29 @@ name: Build HARA_IOS
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Theos
         run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           git clone --recursive https://github.com/theos/theos.git ~/theos
+          curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz
+          tar -xf iPhoneOS14.5.sdk.tar.xz -C ~/theos/sdks
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
       - name: Build Dylib
         run: |
           export THEOS=~/theos
-          make clean package
+          make clean all
         
-      - name: Upload Result
-        uses: actions/upload-artifact@v3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: HARA_IOS_Dylib
-          path: .theos/obj/debug/*.dylib
+          path: .theos/obj/*.dylib
